@@ -22,8 +22,7 @@ jobs:
           cat ${{ github.workspace }}/settings.xml
 
       - name: Setup Maven Action
-      - uses: actions/setup-java@v4
-        name: Setup Maven Action
+        uses: actions/setup-java@v4
         with:
           java-version: "17"
           distribution: "temurin"
