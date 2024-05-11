@@ -1,0 +1,43 @@
+name: Sample Workflow to Build Java App with Maven
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: [self-hosted]
+    steps:
+      # reference : https://github.com/actions/setup-java/blob/main/docs/advanced-usage.md#publishing-using-apache-maven
+      # NOTE: The settings.xml file is created in the Actions $HOME/.m2 directory.
+      # If you have an existing settings.xml file at that location, it will be overwritten.
+      # See below for using the settings-path to change your settings.xml file location.
+      # If you don't want to overwrite the settings.xml file, you can set overwrite-settings: false
+
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: Retrieve var MAVEN_SETTINGS_XML and write to file
+        run: |
+          echo -e '${{ vars.MAVEN_SETTINGS_XML }}' > ${{ github.workspace }}/settings.xml
+          cat ${{ github.workspace }}/settings.xml
+
+      - name: Setup Maven Action
+      - uses: actions/setup-java@v4
+        name: Setup Maven Action
+        with:
+          java-version: "17"
+          distribution: "temurin"
+          settings-path: ${{ github.workspace }} # refer previous step
+          overwrite-settings: false
+          server-id: reposilite-repository-private # Value of the distributionManagement/repository/id field of the pom.xml
+          server-username: MAVEN_REPOSILITE_USERNAME # env variable for username in deploy
+          server-password: MAVEN_REPOSILITE_TOKEN # env variable for token in deploy
+
+      - name: Publish to Reposilite
+        run: |
+          mvn --settings ${{ github.workspace }}/settings.xml clean dependency:copy-dependencies package
+          mvn --settings ${{ github.workspace }}/settings.xml package
+          mvn --settings ${{ github.workspace }}/settings.xml deploy
+        env:
+          MAVEN_REPOSILITE_USERNAME: ${{ secrets.MAVEN_REPOSILITE_USERNAME }}
+          MAVEN_REPOSILITE_TOKEN: ${{ secrets.MAVEN_REPOSILITE_TOKEN }}
