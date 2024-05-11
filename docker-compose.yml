@@ -10,20 +10,20 @@ services:
     networks:
       - local-net
     environment:
-      - REPO_OWNER=my-git-username
-      - REPOSITORY=self-hosted-local-infra-test
+      - REPO_OWNER=<git-repo-owner>
+      - REPOSITORY=<git-repo-name>
       - RUNNER_ADMIN_TOKEN=<classic personal access token>
       - RUNNER_LABELS={"labels":["self-hosted","jammy-amd64"]}
       - RUNNER_NAME=self-hosted-jammy-amd64
       - RUNNER_CONFIG_ARGS=--unattended --replace --disableupdate --no-default-labels
-      
+
   registry:
     image: registry:latest
     container_name: registry
     hostname: registry
     volumes:
       - ./auth:/auth
-      - var-lib-registry:/var/lib/registry     
+      - var-lib-registry:/var/lib/registry
     ports:
       - "5000:5000"
     networks:
