@@ -1,0 +1,58 @@
+version: "3.8"
+
+services:
+  self-hosted-runner:
+    image: ubuntu-self-hosted-gh-runner:latest
+    container_name: self-hosted-runner
+    privileged: true
+    volumes:
+      - var-lib-docker:/var/lib/docker
+    networks:
+      - local-net
+    environment:
+      - REPO_OWNER=my-git-username
+      - REPOSITORY=self-hosted-local-infra-test
+      - RUNNER_ADMIN_TOKEN=<classic personal access token>
+      - RUNNER_LABELS={"labels":["self-hosted","jammy-amd64"]}
+      - RUNNER_NAME=self-hosted-jammy-amd64
+      - RUNNER_CONFIG_ARGS=--unattended --replace --disableupdate --no-default-labels
+      
+  registry:
+    image: registry:latest
+    container_name: registry
+    hostname: registry
+    volumes:
+      - ./auth:/auth
+      - var-lib-registry:/var/lib/registry     
+    ports:
+      - "5000:5000"
+    networks:
+      - local-net
+    environment:
+      - REGISTRY_AUTH=htpasswd
+      - REGISTRY_AUTH_HTPASSWD_REALM="Registry Realm"
+      - REGISTRY_AUTH_HTPASSWD_PATH=/auth/htpasswd
+      - REGISTRY_STORAGE_FILESYSTEM_ROOTDIRECTORY=/var/lib/registry
+
+  reposilite:
+    image: dzikoysk/reposilite:nightly
+    hostname: reposilite
+    container_name: reposilite
+    volumes:
+      - reposilite-data:/app/data
+    ports:
+      - "80:8080"
+    networks:
+      - local-net
+
+networks:
+  local-net:
+    name: local-net
+
+volumes:
+  var-lib-docker:
+    name: var-lib-docker
+  var-lib-registry:
+    name: var-lib-registry
+  reposilite-data:
+    name: reposilite-data
